@@ -12,22 +12,18 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 
 /**
- * <p>
- * 前端控制器
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
+ *商铺
  */
 @RestController
 @RequestMapping("/shop")
 public class ShopController {
-
+    
     @Resource
     public IShopService shopService;
-
+    
     /**
      * 根据id查询商铺信息
+     *
      * @param id 商铺id
      * @return 商铺详情数据
      */
@@ -35,9 +31,10 @@ public class ShopController {
     public Result queryShopById(@PathVariable("id") Long id) {
         return Result.ok(shopService.getById(id));
     }
-
+    
     /**
      * 新增商铺信息
+     *
      * @param shop 商铺数据
      * @return 商铺id
      */
@@ -48,9 +45,10 @@ public class ShopController {
         // 返回店铺id
         return Result.ok(shop.getId());
     }
-
+    
     /**
      * 更新商铺信息
+     *
      * @param shop 商铺数据
      * @return 无
      */
@@ -60,10 +58,11 @@ public class ShopController {
         shopService.updateById(shop);
         return Result.ok();
     }
-
+    
     /**
      * 根据商铺类型分页查询商铺信息
-     * @param typeId 商铺类型
+     *
+     * @param typeId  商铺类型
      * @param current 页码
      * @return 商铺列表
      */
@@ -79,10 +78,11 @@ public class ShopController {
         // 返回数据
         return Result.ok(page.getRecords());
     }
-
+    
     /**
      * 根据商铺名称关键字分页查询商铺信息
-     * @param name 商铺名称关键字
+     *
+     * @param name    商铺名称关键字
      * @param current 页码
      * @return 商铺列表
      */
