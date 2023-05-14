@@ -9,7 +9,9 @@ import com.hmdp.entity.Shop;
 import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hmdp.utils.CacheClient;
 import com.hmdp.utils.RedisData;
+import io.lettuce.core.RedisClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,26 +33,44 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     @Resource
     private StringRedisTemplate stringRedisTemplate;
     
+    @Resource
+    private CacheClient cacheClient;
+    
     @Override
     public Result queryById(Long id) {
         //普通方法解决缓存穿透
         //Shop shop = queryWithPassThrough(id);
+       /* Shop shop = cacheClient.
+                queryWithPassThrough(
+                        CACHE_SHOP_KEY,
+                        id,
+                        Shop.class,
+                        this::getById,
+                        CACHE_SHOP_TTL,
+                        TimeUnit.MINUTES);*/
+        
         
         //互斥锁解决缓存击穿
         //Shop shop = queryWithMutex(id);
         
         //使用逻辑过期解决缓存穿透
-        Shop shop = queryWithLogicalExpire(id);
+        //Shop shop = queryWithLogicalExpire(id);
+        Shop shop = cacheClient.queryWithLogicalExpire(
+                CACHE_SHOP_KEY,
+                id,
+                Shop.class,
+                this::getById,
+                CACHE_SHOP_TTL,
+                TimeUnit.MINUTES
+        );
         if (shop == null) {
             return Result.fail("店铺不存在");
         }
         
         return Result.ok(shop);
     }
-    
-  
-    
     //使用互斥锁解决缓存击穿
+    /*
     public Shop queryWithMutex(Long id) {
         //查询商铺缓存
         String key = CACHE_SHOP_KEY + id;
@@ -104,8 +124,9 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         
         return shop;
     }
-    
-    //普通方法解决缓存穿透
+    */
+    //普通方法解决缓存击穿
+    /*
     public Shop queryWithPassThrough(Long id) {
         //查询商铺缓存
         String key = CACHE_SHOP_KEY + id;
@@ -136,12 +157,14 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         
         return shop;
     }
-    
-    
+    */
     //线程池
+    /*
     private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
+  */
+    //使用逻辑过期解决缓存击穿
+    /*
     
-    //使用逻辑过期解决缓存穿透
     public Shop queryWithLogicalExpire(Long id) {
         //查询商铺缓存
         String key = CACHE_SHOP_KEY + id;
@@ -173,13 +196,13 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
                 return shop;
             }
             //成功，开启独立线程，实现缓存重建
-            CACHE_REBUILD_EXECUTOR.submit(()->{
+            CACHE_REBUILD_EXECUTOR.submit(() -> {
                 try {
                     // 缓存重建
-                    this.saveShop2Redis(id,CACHE_SHOP_TTL);
+                    this.saveShop2Redis(id, CACHE_SHOP_TTL);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
-                }finally {
+                } finally {
                     //   释放锁
                     unLock(lockKey);
                 }
@@ -189,8 +212,10 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         //失败，返回过期商铺信息
         return shop;
     }
-    
+    */
     //获取锁
+    /*
+   
     private boolean tryLock(String key) {
         Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", 10, TimeUnit.SECONDS);
         
@@ -201,7 +226,10 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     private void unLock(String key) {
         stringRedisTemplate.delete(key);
     }
-    
+    **/
+    // 缓存重建
+    /*
+  
     private void saveShop2Redis(Long id, Long expireSeconds) {
         //查询店铺数据
         Shop shop = this.getById(id);
@@ -213,7 +241,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         stringRedisTemplate.opsForValue()
                 .set(CACHE_SHOP_KEY + id, JSONUtil.toJsonStr(redisData));
     }
-    
+    */
     
     /**
      * 更新商铺信息
