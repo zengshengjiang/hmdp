@@ -214,5 +214,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         User user = userService.getById(userId);
         blog.setName(user.getNickName());
         blog.setIcon(user.getIcon());
+        
     }
 }
