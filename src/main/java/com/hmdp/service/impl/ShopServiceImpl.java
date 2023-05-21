@@ -287,7 +287,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         int from = (current-1)*SystemConstants.DEFAULT_PAGE_SIZE;
         int end = current*SystemConstants.DEFAULT_PAGE_SIZE;
         String key=SHOP_GEO_KEY+typeId;
-        
+        //GeoSearchCommandArgs要redis6.2.3版本以上
         GeoResults<RedisGeoCommands.GeoLocation<String>> results = stringRedisTemplate.opsForGeo()
                 .search(
                         key,

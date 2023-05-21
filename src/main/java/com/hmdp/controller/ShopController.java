@@ -77,7 +77,15 @@ public class ShopController {
             
     )
     {
-      return shopService.queryShopByType(typeId,current,x,y);
+        
+        // 根据类型分页查询
+        Page<Shop> page = shopService.query()
+                .eq("type_id", typeId)
+                .page(new Page<>(current, SystemConstants.DEFAULT_PAGE_SIZE));
+        // 返回数据
+        return Result.ok(page.getRecords());
+        //GeoSearchCommandArgs要redis6.2.3版本以上，不用
+      //return shopService.queryShopByType(typeId,current,x,y);
     }
     
     /**
